@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KMZ Distribution Processor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'gray-50': '#fafafa',
+                        'gray-100': '#f4f4f5',
+                        'gray-200': '#e4e4e7',
+                        'gray-300': '#d4d4d8',
+                        'gray-400': '#a1a1aa',
+                        'gray-500': '#71717a',
+                        'gray-600': '#52525b',
+                        'gray-700': '#3f3f46',
+                        'gray-800': '#27272a',
+                        'gray-900': '#18181b',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
+                <h1 class="text-4xl font-bold mb-4 text-blue-600 dark:text-blue-400">
+                    <i class="fas fa-map-signs mr-4"></i>KMZ Distribution Processor
+                </h1>
+                <p class="text-gray-600 dark:text-gray-400 text-lg">
+                    Tools untuk memproses file KMZ dan mengelola distribusi HP & Pole
+                </p>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="mb-8">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2">
+                    <button 
+                        class="tab-button active px-6 py-4 font-semibold transition-all duration-200 flex items-center justify-center space-x-3"
+                        onclick="switchTab('hp-tab')"
+                    >
+                        <i class="fas fa-home text-xl"></i>
+                        <span>Home Pass (HP)</span>
+                    </button>
+                    <button 
+                        class="tab-button px-6 py-4 font-semibold transition-all duration-200 flex items-center justify-center space-x-3"
+                        onclick="switchTab('pole-tab')"
+                    >
+                        <i class="fas fa-power-off text-xl"></i>
+                        <span>Pole Data</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- HP Tab -->
+        <div id="hp-tab" class="tab-content">
+            <div class="space-y-6">
+                <!-- Step 1: Upload KMZ -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                        <h3 class="text-xl font-semibold ml-4">Upload File KMZ</h3>
+                    </div>
+                    <div 
+                        id="kmz-upload" 
+                        class="upload-area border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-12 text-center cursor-pointer transition-all duration-200 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                    >
+                        <i class="fas fa-cloud-upload-alt text-5xl text-blue-500 mb-4"></i>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            Drag & drop file KMZ atau <span class="text-blue-500 underline">pilih file</span>
+                        </p>
+                        <input type="file" id="kmz-file" accept=".kmz" class="hidden">
+                    </div>
+                    <div id="kmz-progress" class="hidden mt-4">
+                        <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-4 relative overflow-hidden">
+                            <div class="progress-fill bg-gradient-to-r from-blue-500 to-blue-600 h-full w-0 transition-all duration-300"></div>
+                            <span class="progress-text absolute inset-0 flex items-center justify-center text-sm font-medium">
+                                Processing...
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: KMZ Results -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                        <h3 class="text-xl font-semibold ml-4">Hasil Parsing KMZ</h3>
+                    </div>
+                    <div id="kmz-result" class="min-h-32 flex items-center justify-center">
+                        <p class="text-gray-500 dark:text-gray-400 italic">Belum ada file KMZ yang diupload</p>
+                    </div>
+                </div>
+
+                <!-- Step 3: Upload CSV -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                        <h3 class="text-xl font-semibold ml-4">Upload File CSV Template</h3>
+                    </div>
+                    <div 
+                        id="csv-hp-upload" 
+                        class="upload-area border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-12 text-center cursor-pointer transition-all duration-200 hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                    >
+                        <i class="fas fa-file-csv text-5xl text-purple-500 mb-4"></i>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            Drag & drop file CSV atau <span class="text-purple-500 underline">pilih file</span>
+                        </p>
+                        <input type="file" id="csv-hp-file" accept=".csv" class="hidden">
+                    </div>
+                </div>
+
+                <!-- Step 4: Column Mapping -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold">4</div>
+                        <h3 class="text-xl font-semibold ml-4">Pilih Kolom Mapping</h3>
+                    </div>
+                    <div id="column-mapping" class="min-h-32">
+                        <p class="text-gray-500 dark:text-gray-400 italic text-center mt-8">Upload CSV template terlebih dahulu</p>
+                    </div>
+                </div>
+
+                <!-- Step 5: Process & Download -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center font-bold">5</div>
+                        <h3 class="text-xl font-semibold ml-4">Process & Download</h3>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                        <button 
+                            id="process-hp-btn" 
+                            class="btn btn-primary flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:dark:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center space-x-2"
+                            disabled
+                        >
+                            <i class="fas fa-cogs"></i>
+                            <span>Process Data</span>
+                        </button>
+                        <button 
+                            id="download-hp-btn" 
+                            class="btn btn-success flex-1 px-6 py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:dark:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center space-x-2"
+                            disabled
+                        >
+                            <i class="fas fa-download"></i>
+                            <span>Download CSV</span>
+                        </button>
+                    </div>
+                    <div id="hp-result" class="min-h-32">
+                        <p class="text-gray-500 dark:text-gray-400 italic text-center mt-8">Hasil processing akan muncul disini</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pole Tab -->
+        <div id="pole-tab" class="tab-content hidden">
+            <div class="space-y-6">
+                <!-- Step 1: KMZ Info -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                        <h3 class="text-xl font-semibold ml-4">Data KMZ</h3>
+                    </div>
+                    <div id="pole-kmz-info" class="min-h-32 flex items-center justify-center">
+                        <p class="text-gray-500 dark:text-gray-400 italic">Upload file KMZ terlebih dahulu pada tab Home Pass</p>
+                    </div>
+                </div>
+
+                <!-- Step 2: Upload CSV Pole -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                        <h3 class="text-xl font-semibold ml-4">Upload File CSV Pole</h3>
+                    </div>
+                    <div 
+                        id="csv-pole-upload" 
+                        class="upload-area border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-12 text-center cursor-pointer transition-all duration-200 hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    >
+                        <i class="fas fa-file-csv text-5xl text-green-500 mb-4"></i>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            Drag & drop file CSV atau <span class="text-green-500 underline">pilih file</span>
+                        </p>
+                        <input type="file" id="csv-pole-file" accept=".csv" class="hidden">
+                    </div>
+                </div>
+
+                <!-- Step 3: Pole Column Mapping -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                        <h3 class="text-xl font-semibold ml-4">Pilih Kolom untuk Data Pole</h3>
+                    </div>
+                    <div id="pole-column-mapping" class="min-h-32">
+                        <p class="text-gray-500 dark:text-gray-400 italic text-center mt-8">Upload CSV pole terlebih dahulu</p>
+                    </div>
+                </div>
+
+                <!-- Step 4: Process & Download Pole -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold">4</div>
+                        <h3 class="text-xl font-semibold ml-4">Process & Download</h3>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                        <button 
+                            id="process-pole-btn" 
+                            class="btn btn-primary flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:dark:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center space-x-2"
+                            disabled
+                        >
+                            <i class="fas fa-cogs"></i>
+                            <span>Process Data</span>
+                        </button>
+                        <button 
+                            id="download-pole-btn" 
+                            class="btn btn-success flex-1 px-6 py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:dark:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center space-x-2"
+                            disabled
+                        >
+                            <i class="fas fa-download"></i>
+                            <span>Download CSV</span>
+                        </button>
+                    </div>
+                    <div id="pole-result" class="min-h-32">
+                        <p class="text-gray-500 dark:text-gray-400 italic text-center mt-8">Hasil processing akan muncul disini</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
